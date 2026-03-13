@@ -1,3 +1,5 @@
+const path = require("path");
+
 // Generates an HTML file and injects the bundled JS automatically
 const HtmlWebpackPlugin = require("html-webpack-plugin");
 
@@ -5,11 +7,12 @@ const HtmlWebpackPlugin = require("html-webpack-plugin");
 // This enables micro-frontend capabilities
 const { ModuleFederationPlugin } = require("webpack").container;
 
+const isProduction = process.env.NODE_ENV === "production";
+
 // Export webpack configuration
 module.exports = {
 
-  // Enables useful dev features like readable errors, no minification
-  mode: "development",
+  mode: isProduction ? "production" : "development",
 
   // Entry point of the application
   // Webpack starts building the dependency graph from here
@@ -23,9 +26,12 @@ module.exports = {
 
   // Output configuration
   output: {
+    path: path.resolve(__dirname, "dist"),
+    filename: "[name].[contenthash].js",
     // "auto" lets webpack decide public path at runtime
     // REQUIRED for Module Federation so chunks load correctly
     publicPath: "auto",
+    clean: true,
   },
 
   // Allows importing files without specifying extensions

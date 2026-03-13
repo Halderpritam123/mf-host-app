@@ -2,13 +2,38 @@ import React from "react";
 import ReactDOM from "react-dom/client";
 import { Provider } from "react-redux";
 
-import store from "remoteButton/store";
 import App from "./App";
 
-const root = ReactDOM.createRoot(document.getElementById("root"));
+// Minimal Redux-compatible store fallback for when remotes are unavailable
+function createFallbackStore() {
+  let state = {};
+  const listeners = [];
+  return {
+    getState: () => state,
+    dispatch: (action) => action,
+    subscribe: (listener) => {
+      listeners.push(listener);
+      return () => listeners.splice(listeners.indexOf(listener), 1);
+    },
+    replaceReducer: () => {},
+  };
+}
 
-root.render(
-  <Provider store={store}>
-    <App />
-  </Provider>
-);
+async function mount() {
+  let store;
+  try {
+    const remoteStore = await import("remoteButton/store");
+    store = remoteStore.default || remoteStore;
+  } catch {
+    store = createFallbackStore();
+  }
+
+  const root = ReactDOM.createRoot(document.getElementById("root"));
+  root.render(
+    <Provider store={store}>
+      <App />
+    </Provider>
+  );
+}
+
+mount();
